@@ -1,0 +1,77 @@
+﻿@page "/"
+
+<PageTitle>選票有效性分辨訓練</PageTitle>
+
+<h1 class="fw-bolder">選票有效性分辨訓練 😎</h1>
+
+<div>
+    <div class="mb-3">
+        <img src="/images/@applicationRuntime.CurrentQuestion.Src" />
+    </div>
+
+    <div class="my-2"> 
+        ✔️ @applicationRuntime.CorrectCount /
+        ❌ @applicationRuntime.FalseCount / 
+        📚 @applicationRuntime.Questinos.Count
+    </div>
+
+    @if (applicationRuntime.Answer)
+    {
+        <div class="btn btn-lg btn-outline-success" @onclick="() => NextQuestion()">下一票</div>
+
+
+        <div class="mt-3 border border-start-0 border-end-0 border-2 
+            @(applicationRuntime.ThisRoundCorrect ? "border-success" : "border-danger")">
+            <span>@(applicationRuntime.ThisRoundCorrect ? "回答正確" : "回答錯誤")</span>
+            <span>，這是一張</span>
+            <span class="fw-bolder">@(applicationRuntime.CurrentQuestion.Valid ? "有效票" : "無效票")。</span>
+        </div>
+    }
+    else
+    {
+        <div class="btn btn-lg btn-outline-primary me-5" @onclick="() => AnswerQuestion(true)">有效票</div>
+        <div class="btn btn-lg btn-outline-danger" @onclick="() => AnswerQuestion(false)">無效票</div>
+    }
+</div>
+
+@code {
+    public ApplicationRuntime applicationRuntime { get; set; } = new ApplicationRuntime();
+
+    private void NextQuestion()
+    {
+        if (applicationRuntime.Questinos.Count > 0)
+        {
+            applicationRuntime.NextQuestion();
+        }
+        else
+        {
+            applicationRuntime.Questinos = QuestionManage.LoadQuestions();
+            applicationRuntime.NextQuestion();
+        }
+
+    }
+
+    private void AnswerQuestion(bool userAnswer)
+    {
+        applicationRuntime.ThisRoundCorrect = applicationRuntime.CurrentQuestion?.Valid == userAnswer;
+
+        if (applicationRuntime.ThisRoundCorrect)
+        {
+            applicationRuntime.CorrectCount += 1;
+        }
+        else
+        {
+            applicationRuntime.FalseCount += 1;
+        }
+
+        applicationRuntime.Answer = true;
+    }
+
+    protected override void OnInitialized()
+    {
+        applicationRuntime.Questinos = QuestionManage.LoadQuestions();
+
+        NextQuestion();
+    }
+
+}
